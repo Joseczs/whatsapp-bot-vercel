@@ -1,8 +1,7 @@
 {
-  "version": 2,
   "functions": {
-    "api/webhook.js": {
-      "runtime": "nodejs18.x",
+    "api/**/*": {
+      "runtime": "@vercel/node@2.15.10",
       "memory": 128,
       "maxDuration": 10
     }
