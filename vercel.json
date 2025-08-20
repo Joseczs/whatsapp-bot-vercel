@@ -1,17 +1,7 @@
 {
   "version": 2,
-  "functions": {
-    "api/webhook.js": {
-      "runtime": "nodejs20.x",
-      "memory": 128,
-      "maxDuration": 10
-    },
-    "api/ping.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
-    { "src": "/api/webhook", "dest": "api/webhook.js" },
-    { "src": "/api/ping", "dest": "api/ping.js" }
+    { "src": "/api/webhook", "dest": "pages/api/webhook.js" },
+    { "src": "/api/ping", "dest": "pages/api/ping.js" }
   ]
 }
