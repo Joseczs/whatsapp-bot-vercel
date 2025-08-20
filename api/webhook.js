@@ -1,34 +1,30 @@
-// /api/webhook.js  — Vercel Serverless Function (Node 20)
+// /api/webhook.js — Vercel Serverless Function (Node 20)
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // 1) Verificación del webhook (GET)
+  // === Verificación (GET) ===
   if (req.method === "GET") {
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
-
     if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
       return res.status(200).send(challenge);
     }
     return res.status(403).send("Forbidden");
   }
 
-  // 2) Mensajes entrantes (POST)
+  // === Mensajes entrantes (POST) ===
   if (req.method === "POST") {
     try {
-      // Asegurar parsing de body en Vercel (por si llega como string)
       const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-
       const entry = body?.entry?.[0]?.changes?.[0]?.value;
       const msg = entry?.messages?.[0];
       if (!msg) return res.status(200).json({ received: true });
 
-      const from = msg.from;                      // Teléfono del usuario (506...)
-      const msgType = msg.type;
+      const from = msg.from;
+      const type = msg.type;
 
-      // Botones / Lista
-      if (msgType === "interactive") {
+      if (type === "interactive") {
         const choice = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id;
         if (choice === "ver_tareas") {
           await sendText(from, "🗂️ Tus tareas: https://tu-enlace-a-tareas.com");
@@ -42,17 +38,15 @@ export default async function handler(req, res) {
         return res.status(200).json({ received: true });
       }
 
-      // Imagen (evidencia)
-      if (msgType === "image") {
-        // TODO: aquí luego canjeás media_id -> URL y subís a Drive/S3
+      if (type === "image") {
+        // TODO: canjear media_id -> URL y subir a Drive/S3
         await sendText(from, "✅ ¡Evidencia recibida! La revisamos y te avisamos.");
         return res.status(200).json({ received: true });
       }
 
-      // Texto
-      if (msgType === "text") {
-        const text = (msg.text?.body || "").trim().toLowerCase();
-        if (["menu", "hola", "hi", "ayuda"].includes(text)) {
+      if (type === "text") {
+        const t = (msg.text?.body || "").trim().toLowerCase();
+        if (["menu", "hola", "hi", "ayuda"].includes(t)) {
           await sendListMenu(from);
         } else {
           await sendText(from, "No te entendí. Escribí *MENU* para ver opciones.");
@@ -60,10 +54,9 @@ export default async function handler(req, res) {
         return res.status(200).json({ received: true });
       }
 
-      // Otros tipos: acuse de recibo
       return res.status(200).json({ received: true });
-    } catch (err) {
-      console.error("Webhook error:", err);
+    } catch (e) {
+      console.error("Webhook error:", e);
       return res.status(200).json({ received: true });
     }
   }
